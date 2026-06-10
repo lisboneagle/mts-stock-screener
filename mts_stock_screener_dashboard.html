@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTS Stock Screener Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind Config -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            },
+            darkbg: '#0b0f19',
+            darkcard: '#151b2c',
+            darkborder: '#1f293d',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Font Awesome Icons for specialized widgets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&family=JetBrains+Mono:wght=400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f293d;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    /* Animations */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .live-dot {
+      position: relative;
+    }
+    .live-dot::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: #10b981;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .live-dot::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #10b981;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse-ring 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-darkbg text-slate-100 min-h-screen selection:bg-brand-500 selection:text-white overflow-x-hidden">
+
+  <!-- Main Grid Layout -->
+  <div class="flex flex-col lg:flex-row min-h-screen">
+    
+    <!-- Sidebar / Educational Control Deck -->
+    <aside class="w-full lg:w-80 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 p-6 flex flex-col justify-between shrink-0">
+      <div>
+        <!-- Logo Header -->
+        <div class="flex items-center space-x-3 mb-8">
+          <div class="w-10 h-10 bg-brand-500/10 border border-brand-500 rounded-xl flex items-center justify-center">
+            <i class="fa-solid fa-chart-line-up text-brand-500 text-lg"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg tracking-tight leading-none text-white">MOMENTUM</h1>
+            <span class="text-xs text-brand-500 font-semibold tracking-wider uppercase">Watchlist Terminal</span>
+          </div>
+        </div>
+
+        <!-- Metric Explanation Card -->
+        <div class="space-y-4 mb-6">
+          <div class="p-4 bg-slate-850 rounded-xl border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand-500 mb-2">
+              <i class="fa-solid fa-calculator mr-1"></i> Ranking Formula
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              We weigh price performance over multiple horizons to isolate true leadership:
+            </p>
+            <div class="mt-2 space-y-1 text-xs font-semibold text-slate-300">
+              <div class="flex justify-between items-center py-0.5 border-b border-slate-800/50">
+                <span>3-Month Gain</span>
+                <span class="text-brand-500">40% Weight</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5 border-b border-slate-800/50">
+                <span>6-Month Gain</span>
+                <span class="text-slate-400">20% Weight</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5 border-b border-slate-800/50">
+                <span>9-Month Gain</span>
+                <span class="text-slate-400">20% Weight</span>
+              </div>
+              <div class="flex justify-between items-center py-0.5">
+                <span>12-Month Gain</span>
+                <span class="text-slate-400">20% Weight</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 bg-slate-850 rounded-xl border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">
+              <i class="fa-solid fa-fire mr-1"></i> Minervini Template
+            </h3>
+            <p class="text-xs text-slate-400 leading-relaxed mb-2">
+              Verifies if a stock is in a healthy Stage 2 structural uptrend based on moving averages & price-to-bounds ratio:
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> Price > 50/150/200 MAs
+              </div>
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> 50 MA > 150 MA
+              </div>
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> 150 MA > 200 MA
+              </div>
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> 200 MA rising
+              </div>
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> &lt;25% of 52w High
+              </div>
+              <div class="flex items-center text-slate-300">
+                <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5 text-[9px]"></i> &gt;30% from 52w Low
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gemini API Key configuration status -->
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800/80 mb-6">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-slate-300">GEMINI AI ENGINE</h4>
+            <div class="flex items-center">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+              <span class="text-[10px] text-emerald-400 uppercase font-mono">Ready</span>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Uses <span class="text-slate-300">gemini-2.5-flash-preview-09-2025</span> with Google Search grounding to populate live stock indicators directly from the open web.
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer section of sidebar -->
+      <div class="pt-4 border-t border-slate-800">
+        <div class="flex items-center space-x-3 text-xs text-slate-500">
+          <i class="fa-brands fa-github text-sm"></i>
+          <span>Substack Trading Momentum</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 p-6 lg:p-10 flex flex-col space-y-6 overflow-y-auto max-h-screen">
+      
+      <!-- Top Action Ribbon -->
+      <header class="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-5 border-b border-slate-800">
+        <div class="flex items-start md:items-center space-x-4 flex-1">
+          <!-- Stylized Premium Stock Line Graph/Chart SVG before Header -->
+          <div class="p-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/5 shrink-0">
+            <svg class="w-12 h-12" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid Lines -->
+              <line x1="4" y1="12" x2="44" y2="12" stroke="#161e33" stroke-width="1" stroke-dasharray="2 2" />
+              <line x1="4" y1="24" x2="44" y2="24" stroke="#161e33" stroke-width="1" stroke-dasharray="2 2" />
+              <line x1="4" y1="36" x2="44" y2="36" stroke="#161e33" stroke-width="1" stroke-dasharray="2 2" />
+              
+              <!-- Area under the line (gradient fill) -->
+              <path d="M4 36 L12 28 L20 30 L28 18 L36 22 L44 10 L44 36 Z" fill="url(#chartGradient)" opacity="0.15" />
+              
+              <!-- Main Glowing trend Line -->
+              <path d="M4 36 L12 28 L20 30 L28 18 L36 22 L44 10" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="drop-shadow-[0_0_4px_rgba(16,185,129,0.5)]"/>
+              
+              <!-- Dotted Secondary MA guideline -->
+              <path d="M4 32 L12 29 L20 25 L28 22 L36 19 L44 16" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="3 3" stroke-linecap="round" opacity="0.6"/>
+              
+              <!-- Glow pulse anchor breakout point -->
+              <circle cx="44" cy="10" r="3.5" fill="#34d399" />
+              
+              <!-- Definitions for gradient -->
+              <defs>
+                <linearGradient id="chartGradient" x1="24" y1="10" x2="24" y2="36" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#10b981" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-3xl font-extrabold text-white tracking-tight leading-tight">MTS Stock Screener Dashboard</h2>
+            <p class="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+              Analyze, rank, and track key momentum stocks. Filter and drill down into individual relative strength metrics, structured according to the premium 
+              <a href="https://tradingmomentum.substack.com/p/how-i-find-the-biggest-winning-stocks" target="_blank" class="text-brand-500 hover:text-brand-600 hover:underline inline-flex items-center font-bold gap-0.5">
+                Trading Momentum Methodology <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Action Buttons (ELEGANT 2x2 GRID STRUCTURE) -->
+        <div class="grid grid-cols-2 gap-2 w-full md:w-[420px] shrink-0">
+          
+          <!-- Box 1: Refresh Controls Slot -->
+          <div id="refreshControlsContainer" class="w-full">
+            <!-- Active Refresh Button -->
+            <button onclick="triggerRefreshAll()" id="btnRefreshAll" class="w-full h-full justify-center px-4 py-2.5 bg-brand-500 hover:bg-brand-600 transition-colors text-white text-xs font-bold rounded-lg flex items-center space-x-2 shadow-lg shadow-brand-500/10">
+              <i class="fa-solid fa-arrows-rotate animate-spin-slow"></i>
+              <span>Refresh All</span>
+            </button>
+            
+            <!-- Stop Refresh Button (Hidden until active) -->
+            <button onclick="abortActiveRefresh()" id="btnStopRefresh" class="hidden w-full h-full justify-center px-4 py-2.5 bg-rose-600 hover:bg-rose-700 transition-colors text-white text-xs font-extrabold rounded-lg flex items-center space-x-2 shadow-lg shadow-rose-600/20">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+              </span>
+              <span>STOP REFRESH</span>
+            </button>
+          </div>
+
+          <!-- Box 2: Delete All Button -->
+          <button onclick="openClearAllModal()" class="w-full justify-center px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-colors text-rose-400 text-xs font-bold rounded-lg flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Delete All</span>
+          </button>
+          
+          <!-- Box 3: Upload CSV Handler (Kept together with Export) -->
+          <label class="cursor-pointer w-full justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-750 border border-slate-700 transition-colors text-slate-200 text-xs font-bold rounded-lg flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-csv text-slate-400"></i>
+            <span>Upload CSV</span>
+            <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+          </label>
+
+          <!-- Box 4: File Export Handler (Kept together with Upload) -->
+          <button onclick="exportToMTSCSV()" class="w-full justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-755 hover:text-white border border-slate-700 transition-colors text-slate-200 text-xs font-bold rounded-lg flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-export text-emerald-400"></i>
+            <span>Export CSV</span>
+          </button>
+
+        </div>
+      </header>
+
+      <!-- KPI Indicators Row -->
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Watchlist Count -->
+        <div class="p-5 bg-darkcard border border-darkborder rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Watchlist</span>
+            <h3 class="text-3xl font-bold text-white mt-1 mono" id="kpi-total">0</h3>
+            <span class="text-[10px] text-slate-500 mt-1 block">Actively loaded symbols</span>
+          </div>
+          <div class="p-3 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl">
+            <i class="fa-solid fa-folder-open text-xl"></i>
+          </div>
+        </div>
+
+        <!-- High-momentum count -->
+        <div class="p-5 bg-darkcard border border-darkborder rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Leader Candidates</span>
+            <h3 class="text-3xl font-bold text-emerald-400 mt-1 mono" id="kpi-leaders">0</h3>
+            <span class="text-[10px] text-emerald-500 mt-1 block">Score > 50 momentum</span>
+          </div>
+          <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
+            <i class="fa-solid fa-fire-flame-curved text-xl"></i>
+          </div>
+        </div>
+
+        <!-- Trend Template Passers -->
+        <div class="p-5 bg-darkcard border border-darkborder rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Trend Template Pass</span>
+            <h3 class="text-3xl font-bold text-amber-400 mt-1 mono" id="kpi-trend">0%</h3>
+            <span class="text-[10px] text-slate-500 mt-1 block">Meets Mark Minervini criteria</span>
+          </div>
+          <div class="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl">
+            <i class="fa-solid fa-circle-check text-xl"></i>
+          </div>
+        </div>
+
+        <!-- Top Sector leader -->
+        <div class="p-5 bg-darkcard border border-darkborder rounded-xl flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium uppercase tracking-wider">Top Sector</span>
+            <h3 class="text-xl font-bold text-purple-300 mt-2 truncate max-w-[150px]" id="kpi-sector">Tech</h3>
+            <span class="text-[10px] text-slate-500 mt-1 block">Most frequent category</span>
+          </div>
+          <div class="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
+            <i class="fa-solid fa-industry text-xl"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Control Toolbar: Add Stock, Search & Bulk Actions -->
+      <section class="bg-darkcard border border-darkborder rounded-xl p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          <!-- Add stock input -->
+          <div class="flex flex-col sm:flex-row items-stretch gap-2 w-full lg:max-w-md">
+            <div class="relative flex-1">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                <i class="fa-solid fa-square-plus"></i>
+              </span>
+              <input type="text" id="addTickerInput" placeholder="Enter Symbol (e.g. NVDA, PLTR)" class="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 text-slate-100 rounded-lg text-xs font-semibold focus:outline-none focus:border-brand-500 uppercase">
+            </div>
+            <button onclick="handleAddStock()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-brand-500 transition-all text-white text-xs font-bold rounded-lg flex items-center justify-center space-x-1.5">
+              <span>Add Stock</span>
+            </button>
+          </div>
+
+          <!-- Filters, search, bulk deletion controls -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Search bar -->
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              </span>
+              <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Search Ticker/Company..." class="pl-9 pr-4 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-brand-500 min-w-[180px]">
+            </div>
+
+            <!-- Filter by Sector -->
+            <select id="sectorFilter" onchange="applyFilters()" class="px-3 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-brand-500">
+              <option value="ALL">All Sectors</option>
+            </select>
+
+            <!-- Filter by Trend Template -->
+            <select id="trendFilter" onchange="applyFilters()" class="px-3 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:border-brand-500">
+              <option value="ALL">All Trends</option>
+              <option value="PASS">Passes Minervini Trend</option>
+              <option value="FAIL">Fails Trend Criteria</option>
+            </select>
+
+            <!-- Delete selected -->
+            <button onclick="deleteSelected()" id="deleteSelectedBtn" class="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-colors text-rose-400 text-xs font-semibold rounded-lg flex items-center space-x-1.5 opacity-50 cursor-not-allowed" disabled>
+              <i class="fa-solid fa-square-minus"></i>
+              <span>Delete Selected</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bulk Action Info -->
+        <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2 pt-1 border-t border-slate-800/60">
+          <div class="flex items-center space-x-3">
+            <span class="flex items-center"><span class="inline-block w-2.5 h-2.5 rounded bg-brand-500/20 border border-brand-500/40 mr-1.5"></span> Leader Candidate (>50)</span>
+            <span class="flex items-center"><span class="inline-block w-2.5 h-2.5 rounded bg-amber-500/20 border border-amber-500/40 mr-1.5"></span> Neutral (20-50)</span>
+            <span class="flex items-center"><span class="inline-block w-2.5 h-2.5 rounded bg-rose-500/20 border border-rose-500/40 mr-1.5"></span> Lagging (&lt;20)</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <label class="inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="mockModeCheckbox" class="sr-only peer" checked>
+              <div class="w-7 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:bg-slate-800 peer-checked:bg-emerald-600 relative"></div>
+              <span class="ml-2 text-[11px] font-bold text-slate-300">Smart Demo Engine</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Batch Update Progress Bar (Double Thickness, Elegant Glow) positioned right above the Table -->
+      <div id="apiLoaderBar" class="hidden bg-darkcard border border-darkborder rounded-xl p-5 space-y-3 animate-fade-in shadow-lg">
+        <div class="flex justify-between items-center text-xs font-bold tracking-wider">
+          <span class="text-brand-500 flex items-center gap-2">
+            <i class="fa-solid fa-circle-nodes animate-pulse text-sm"></i>
+            <span>AI ENGINE UPDATE IN PROGRESS...</span>
+          </span>
+          <span id="apiProgressPercent" class="mono text-brand-400 font-extrabold text-sm">0%</span>
+        </div>
+        <div class="w-full bg-slate-900 h-5 rounded-full overflow-hidden border border-slate-800/80 relative">
+          <div class="h-full bg-gradient-to-r from-emerald-600 to-brand-500 rounded-full transition-all duration-300 shadow-[0_0_12px_rgba(16,185,129,0.4)]" id="apiProgressIndicator" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Main Stocks Table Card (OPTIMIZED: Unified Scrollable Window) -->
+      <section class="bg-darkcard border border-darkborder rounded-xl overflow-hidden shadow-2xl flex-1 flex flex-col">
+        <!-- Scrollable Wrapper for absolute performance control -->
+        <div class="overflow-y-auto overflow-x-auto w-full max-h-[calc(100vh-340px)]" id="tableScrollContainer">
+          <table class="w-full text-left border-collapse table-auto">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-800 text-xs text-slate-300 uppercase tracking-wider font-semibold sticky top-0 z-10 select-none">
+                <th class="p-4 w-12 text-center bg-slate-900">
+                  <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" class="rounded border-slate-700 bg-slate-900 text-brand-500 focus:ring-brand-500 focus:ring-offset-slate-900">
+                </th>
+                <!-- Sortable Rank Header -->
+                <th onclick="toggleSort('rank')" class="p-4 w-20 text-center bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center justify-center space-x-1">
+                    <span>Rank</span>
+                    <span id="sort-icon-rank" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Sortable Ticker Header -->
+                <th onclick="toggleSort('ticker')" class="p-4 bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center space-x-1">
+                    <span>Ticker</span>
+                    <span id="sort-icon-ticker" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Sortable Company Details Header -->
+                <th onclick="toggleSort('company')" class="p-4 hidden md:table-cell bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center space-x-1">
+                    <span>Company Details</span>
+                    <span id="sort-icon-company" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Sortable Price Header -->
+                <th onclick="toggleSort('price')" class="p-4 bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center space-x-1">
+                    <span>Price</span>
+                    <span id="sort-icon-price" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Sortable P/E Ratio Header -->
+                <th onclick="toggleSort('peRatio')" class="p-4 hidden sm:table-cell bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center space-x-1">
+                    <span>P/E Ratio</span>
+                    <span id="sort-icon-peRatio" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Sortable Momentum Score Header -->
+                <th onclick="toggleSort('momentumScore')" class="p-4 text-center bg-slate-900 cursor-pointer hover:bg-slate-800 hover:text-white transition-colors group">
+                  <div class="flex items-center justify-center space-x-1">
+                    <span>Momentum Score</span>
+                    <span id="sort-icon-momentumScore" class="text-slate-500 group-hover:text-slate-300 transition-colors"><i class="fa-solid fa-sort text-[10px]"></i></span>
+                  </div>
+                </th>
+                <!-- Regular Headers -->
+                <th class="p-4 text-center bg-slate-900">Trend Status</th>
+                <th class="p-4 text-right w-36 bg-slate-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="watchlistTableBody" class="divide-y divide-slate-800/60 text-sm">
+              <!-- Dynamically populated rows -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Empty Watchlist State -->
+        <div id="emptyState" class="hidden flex-col items-center justify-center p-16 text-center text-slate-500">
+          <i class="fa-solid fa-rectangle-list text-5xl mb-4 text-slate-700"></i>
+          <h3 class="text-white font-semibold text-lg">No Tickers in Watchlist</h3>
+          <p class="text-xs max-w-sm mt-1">
+            Add manual stock tickers, upload a watchlist CSV, or restore the pre-populated list to begin momentum scoring.
+          </p>
+          <button onclick="restoreDefaultList()" class="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-all">
+            Restore Default Tickers
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Clear All Confirmation Modal -->
+  <div id="clearAllModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 max-w-md w-full rounded-2xl p-6 shadow-2xl">
+      <div class="flex items-center space-x-3 text-rose-400 mb-4">
+        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+        <h3 class="text-lg font-bold text-white">Delete All Watchlist Items?</h3>
+      </div>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        This action will permanently purge all stock tickers from your local dashboard. You will need to re-upload or manually enter your stocks.
+      </p>
+      <div class="flex items-center justify-end space-x-2 mt-6">
+        <button onclick="closeClearAllModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold">
+          Cancel
+        </button>
+        <button onclick="clearAllWatchlist()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold">
+          Yes, Delete All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Toast Alerts -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 max-w-sm"></div>
+
+  <script>
+    // App configuration & State variables
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'momentum-watchlist-dashboard';
+    const apiKey = ""; // Runtime-injected token
+    
+    // Cancellation state for API refresh loop
+    let cancelRefreshRequested = false;
+    let isRefreshingActive = false;
+
+    // Sorting State
+    let currentSortColumn = 'momentumScore'; // Default sorting by momentumScore
+    let currentSortDirection = 'desc';       // Default high to low
+
+    // Initial Stock list pre-loaded from user's watchlist csv upload
+    const DEFAULT_TICKERS = [
+      "AAOI", "AAPL", "ACLS", "AI", "ALAB", "AMAT", "AMD", "ANET", "ARM", "ASML", "AVGO", "BE", "BKNG", 
+      "CDNS", "CEG", "CIEN", "COHR", "CRDO", "CRWD", "CRWV", "AXA SA", "Capstone Copper", "DDOG", "DJT", 
+      "DPRO", "FLNC", "FSLR", "FTNT", "GLW", "GOOG", "GTLB", "IOT", "IREN", "LITE", "LRCX", "MA", "MPWR", 
+      "MRVL", "MSFT", "MU", "NET", "NVDA", "NVTS", "NXPI", "ON", "ORCL", "PANW", "PLTR", "POET", "QCOM", 
+      "SMCI", "SNPS", "TSEM", "TUYA", "VRNS", "VRT", "WOLF", "ZS"
+    ];
+
+    // High fidelity seed data calibrated specifically to rank exactly as in image_029420.png
+    const DEMO_METRICS = {
+      "SMCI": { name: "Super Micro Computer", sector: "Technology", industry: "Computer Hardware", price: 820.50, peRatio: 51.2, ch3: 88.5, ch6: 154.2, ch9: 210.4, ch12: 380.2, ma50: 835.0, ma150: 610.2, ma200: 480.1, high52w: 1229.0, low52w: 215.0, rising200: true, mktCap: 48000, avgVolume: 6500, qtrlyEps: 310.0, qtrlyRev: 205.0, roe: 18.2, margin: 11.5, rsRating: 99 },
+      "ALAB": { name: "Astera Labs", sector: "Technology", industry: "Semiconductors", price: 85.50, peRatio: 95.0, ch3: 51.5, ch6: 104.2, ch9: 132.8, ch12: 162.1, ma50: 79.4, ma150: 72.1, ma200: 63.8, high52w: 98.50, low52w: 45.0, rising200: true, mktCap: 13000, avgVolume: 3500, qtrlyEps: 52.0, qtrlyRev: 31.5, roe: 18.2, margin: 15.6, rsRating: 91 },
+      "VRT": { name: "Vertiv Holdings Co.", sector: "Industrials", industry: "Electrical Equipment", price: 82.10, peRatio: 45.3, ch3: 35.2, ch6: 72.1, ch9: 110.4, ch12: 180.6, ma50: 74.2, ma150: 62.1, ma200: 51.5, high52w: 88.4, low52w: 24.2, rising200: true, mktCap: 31000, avgVolume: 4200, qtrlyEps: 84.0, qtrlyRev: 21.0, roe: 31.4, margin: 18.2, rsRating: 96 },
+      "ACLS": { name: "Axcelis Technologies Inc", sector: "Technology", industry: "Semiconductors", price: 85.50, peRatio: 11.50, ch3: 45.2, ch6: 82.1, ch9: 98.4, ch12: 122.5, ma50: 78.2, ma150: 71.0, ma200: 64.5, high52w: 99.0, low52w: 42.0, rising200: true, mktCap: 2800, avgVolume: 450, qtrlyEps: 45.0, qtrlyRev: 25.0, roe: 22.0, margin: 28.0, rsRating: 82 },
+      "NVDA": { name: "NVIDIA Corporation", sector: "Technology", industry: "Semiconductors", price: 915.20, peRatio: 72.4, ch3: 26.4, ch6: 42.5, ch9: 65.2, ch12: 115.4, ma50: 890.1, ma150: 780.5, ma200: 710.2, high52w: 974.0, low52w: 380.5, rising200: true, mktCap: 2280000, avgVolume: 42000, qtrlyEps: 220.0, qtrlyRev: 178.0, roe: 45.3, margin: 48.2, rsRating: 98 },
+      "PLTR": { name: "Palantir Technologies", sector: "Technology", industry: "Software", price: 24.80, peRatio: 180.2, ch3: 31.5, ch6: 55.2, ch9: 42.8, ch12: 38.4, ma50: 22.1, ma150: 19.5, ma200: 16.8, high52w: 27.50, low52w: 12.20, rising200: true, mktCap: 55000, avgVolume: 35000, qtrlyEps: 45.0, qtrlyRev: 21.0, roe: 12.5, margin: 14.8, rsRating: 94 },
+      "AVGO": { name: "Broadcom Inc.", sector: "Technology", industry: "Semiconductors", price: 1385.00, peRatio: 48.6, ch3: 22.4, ch6: 45.1, ch9: 38.3, ch12: 40.5, ma50: 1310.2, ma150: 1150.8, ma200: 1010.5, high52w: 1445.0, low52w: 785.4, rising200: true, mktCap: 642000, avgVolume: 2800, qtrlyEps: 18.5, qtrlyRev: 34.0, roe: 24.5, margin: 21.2, rsRating: 89 },
+      "AMD": { name: "Advanced Micro Devices", sector: "Technology", industry: "Semiconductors", price: 168.40, peRatio: 320.5, ch3: 12.4, ch6: 28.5, ch9: 25.2, ch12: 18.3, ma50: 172.1, ma150: 160.4, ma200: 142.0, high52w: 227.3, low52w: 93.1, rising200: true, mktCap: 272000, avgVolume: 48000, qtrlyEps: -12.0, qtrlyRev: 8.5, roe: 5.6, margin: 7.2, rsRating: 78 },
+      "AAPL": { name: "Apple Inc.", sector: "Technology", industry: "Consumer Electronics", price: 175.50, peRatio: 26.8, ch3: -4.2, ch6: 2.1, ch9: -1.5, ch12: 12.4, ma50: 179.8, ma150: 182.1, ma200: 180.2, high52w: 199.6, low52w: 165.2, rising200: false, mktCap: 2710000, avgVolume: 52000, qtrlyEps: 2.0, qtrlyRev: -1.0, roe: 142.0, margin: 26.1, rsRating: 65 },
+      "MSFT": { name: "Microsoft Corporation", sector: "Technology", industry: "Software", price: 415.60, peRatio: 35.4, ch3: 5.2, h6: 12.8, ch9: 12.4, ch12: 18.5, ma50: 418.2, ma150: 395.5, ma200: 372.1, high52w: 430.8, low52w: 315.1, rising200: true, mktCap: 3090000, avgVolume: 22000, qtrlyEps: 21.0, qtrlyRev: 17.5, roe: 38.5, margin: 34.2, rsRating: 82 },
+      "GOOG": { name: "Alphabet Inc.", sector: "Technology", industry: "Interactive Media", price: 151.20, peRatio: 24.1, ch3: 2.5, ch6: 15.2, ch9: 8.4, ch12: 12.8, ma50: 148.1, ma150: 142.2, ma200: 135.0, high52w: 160.2, low52w: 115.4, rising200: true, mktCap: 1890000, avgVolume: 26000, qtrlyEps: 28.0, qtrlyRev: 13.5, roe: 27.2, margin: 24.0, rsRating: 75 },
+      "CEG": { name: "Constellation Energy", sector: "Utilities", industry: "Independent Power", price: 212.50, peRatio: 31.8, ch3: 35.1, ch6: 48.4, ch9: 54.2, ch12: 82.5, ma50: 185.2, ma150: 148.1, ma200: 122.4, high52w: 225.0, low52w: 91.2, rising200: true, mktCap: 67000, avgVolume: 1500, qtrlyEps: 112.0, qtrlyRev: 45.0, roe: 14.2, margin: 12.8, rsRating: 95 },
+      "SNDK": { name: "SanDisk Corporation", sector: "Technology", industry: "Semiconductors", price: 1759.68, peRatio: 59.24, ch3: 25.4, ch6: 65.0, ch9: 82.2, ch12: 110.0, ma50: 1650.0, ma150: 1520.0, ma200: 1410.0, high52w: 1850.0, low52w: 1100.0, rising200: true, mktCap: 260591, avgVolume: 15915, qtrlyEps: null, qtrlyRev: 251.0, roe: 39.3, margin: null, rsRating: 99 }
+    };
+
+    const GENERIC_SECTORS = ["Technology", "Industrials", "Healthcare", "Consumer Cyclical", "Communication Services", "Financials", "Utilities", "Energy"];
+    const GENERIC_INDUSTRIES = ["Semiconductors", "Software", "Medical Devices", "Automotive", "E-Commerce", "Financial Infrastructure", "Clean Energy", "Specialty Chemicals"];
+
+    // Main App Watchlist State
+    let watchlist = [];
+
+    // Initialize Watchlist
+    window.onload = function() {
+      loadWatchlistFromStorage();
+      if (watchlist.length === 0) {
+        restoreDefaultList();
+      } else {
+        renderWatchlist();
+      }
+      populateFilters();
+    }
+
+    // Load from LocalStorage
+    function loadWatchlistFromStorage() {
+      try {
+        const stored = localStorage.getItem(`${appId}-watchlist`);
+        if (stored) {
+          watchlist = JSON.parse(stored);
+        }
+      } catch (e) {
+        showToast("Error loading saved watchlist. Using defaults.", "error");
+        watchlist = [];
+      }
+    }
+
+    // Save to LocalStorage
+    function saveWatchlistToStorage() {
+      try {
+        localStorage.setItem(`${appId}-watchlist`, JSON.stringify(watchlist));
+      } catch (e) {
+        console.error("Local storage save failed", e);
+      }
+    }
+
+    // Restore Default Tickers with synthesized or seeded data
+    function restoreDefaultList() {
+      watchlist = DEFAULT_TICKERS.map(ticker => {
+        return createStockObject(ticker);
+      });
+      saveWatchlistToStorage();
+      renderWatchlist();
+      populateFilters();
+      showToast("Restored initial watchlist of stock symbols", "success");
+    }
+
+    // Helper to generate a baseline Stock Object
+    function createStockObject(symbol, existingData = {}) {
+      const sym = symbol.toUpperCase().trim();
+      const demo = DEMO_METRICS[sym];
+      
+      const seed = Math.random();
+      const sector = existingData.sector || (demo ? demo.sector : GENERIC_SECTORS[Math.floor(seed * GENERIC_SECTORS.length)]);
+      const industry = existingData.industry || (demo ? demo.industry : GENERIC_INDUSTRIES[Math.floor(seed * GENERIC_INDUSTRIES.length)]);
+      const price = existingData.price !== undefined ? existingData.price : (demo ? demo.price : +(50 + seed * 250).toFixed(2));
+      const peRatio = existingData.peRatio !== undefined ? existingData.peRatio : (demo ? demo.peRatio : (seed > 0.85 ? null : +(15 + seed * 60).toFixed(1)));
+      
+      const basePerformance = sector === "Technology" ? 25 : sector === "Utilities" ? 18 : 8;
+      const ch3 = existingData.pctChange3M !== undefined ? existingData.pctChange3M : (demo ? demo.ch3 : +(basePerformance * seed * 1.5 - 5).toFixed(1));
+      const ch6 = existingData.pctChange6M !== undefined ? existingData.pctChange6M : (demo ? demo.ch6 : +(ch3 * 1.8 + seed * 10).toFixed(1));
+      const ch9 = existingData.pctChange9M !== undefined ? existingData.pctChange9M : (demo ? demo.ch9 : +(ch6 * 1.4 + seed * 15).toFixed(1));
+      const ch12 = existingData.pctChange12M !== undefined ? existingData.pctChange12M : (demo ? demo.ch12 : +(ch9 * 1.3 + seed * 20).toFixed(1));
+
+      const ma50 = existingData.ma50 !== undefined ? existingData.ma50 : (demo ? demo.ma50 : +(price * (0.9 + seed * 0.15)).toFixed(2));
+      const ma150 = existingData.ma150 !== undefined ? existingData.ma150 : (demo ? demo.ma150 : +(price * (0.8 + seed * 0.2)).toFixed(2));
+      const ma200 = existingData.ma200 !== undefined ? existingData.ma200 : (demo ? demo.ma200 : +(price * (0.75 + seed * 0.22)).toFixed(2));
+      const high52w = existingData.high52w !== undefined ? existingData.high52w : (demo ? demo.high52w : +(price * (1.0 + seed * 0.3)).toFixed(2));
+      const low52w = existingData.low52w !== undefined ? existingData.low52w : (demo ? demo.low52w : +(price * (0.5 + seed * 0.25)).toFixed(2));
+      const rising200 = existingData.rising200 !== undefined ? existingData.rising200 : (demo ? demo.rising200 : seed > 0.3);
+
+      const mktCap = existingData.mktCap !== undefined ? existingData.mktCap : (demo ? demo.mktCap : Math.round(150 + seed * 45000));
+      const avgVolume = existingData.avgVolume !== undefined ? existingData.avgVolume : (demo ? demo.avgVolume : Math.round(80 + seed * 15000));
+      const qtrlyEps = existingData.qtrlyEps !== undefined ? existingData.qtrlyEps : (demo ? demo.qtrlyEps : (seed > 0.4 ? +(10 + seed * 80).toFixed(1) : null));
+      const qtrlyRev = existingData.qtrlyRev !== undefined ? existingData.qtrlyRev : (demo ? demo.qtrlyRev : +(15 + seed * 60).toFixed(1));
+      const roe = existingData.roe !== undefined ? existingData.roe : (demo ? demo.roe : +(-10 + seed * 45).toFixed(1));
+      const margin = existingData.margin !== undefined ? existingData.margin : (demo ? demo.margin : (seed > 0.2 ? +(5 + seed * 30).toFixed(1) : null));
+      const rsRating = existingData.rsRating !== undefined ? existingData.rsRating : (demo ? demo.rsRating : Math.round(15 + seed * 84));
+
+      const score = calculateMomentumScore(ch3, ch6, ch9, ch12);
+
+      return {
+        id: crypto.randomUUID(),
+        ticker: sym,
+        name: existingData.name || (demo ? demo.name : `${sym} Corporation`),
+        sector: sector,
+        industry: industry,
+        price: price,
+        peRatio: peRatio,
+        pctChange3M: ch3,
+        pctChange6M: ch6,
+        pctChange9M: ch9,
+        pctChange12M: ch12,
+        ma50: ma50,
+        ma150: ma150,
+        ma200: ma200,
+        high52w: high52w,
+        low52w: low52w,
+        rising200: rising200,
+        momentumScore: score,
+        mktCap: mktCap,
+        avgVolume: avgVolume,
+        qtrlyEps: qtrlyEps,
+        qtrlyRev: qtrlyRev,
+        roe: roe,
+        margin: margin,
+        rsRating: rsRating,
+        lastUpdated: new Date(Date.now() - 60000).toISOString(), // "1m ago" baseline
+        selected: false
+      };
+    }
+
+    // Calculating Momentum Score: 40% 3M, 20% 6M, 20% 9M, 20% 12M
+    function calculateMomentumScore(ch3, ch6, ch9, ch12) {
+      return +(0.4 * ch3 + 0.2 * ch6 + 0.2 * ch9 + 0.2 * ch12).toFixed(2);
+    }
+
+    // Check if stock passes Minervini Trend Template (out of 9 points)
+    function evaluateTrendTemplate(stock) {
+      const results = {
+        rule1: stock.price > stock.ma50,            // Price above 50 SMA
+        rule2: stock.price > stock.ma150,           // Price above 150 SMA
+        rule3: stock.price > stock.ma200,           // Price above 200 SMA
+        rule4: stock.ma50 > stock.ma150,            // 50 SMA above 150 SMA
+        rule5: stock.ma50 > stock.ma200,            // 50 SMA above 200 SMA
+        rule6: stock.ma150 > stock.ma200,          // 150 SMA above 200 SMA
+        rule7: stock.rising200,                     // 200 SMA trending up
+        rule8: stock.price >= stock.high52w * 0.75, // Price within 25% of 52w High
+        rule9: stock.price >= stock.low52w * 1.30   // Price at least 30% above 52w Low
+      };
+
+      const passedCount = Object.values(results).filter(Boolean).length;
+      return {
+        results,
+        passedCount,
+        fullPass: passedCount === 9
+      };
+    }
+
+    // Sort Toggle Handler
+    function toggleSort(column) {
+      if (currentSortColumn === column) {
+        // Toggle direction
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSortColumn = column;
+        currentSortDirection = 'desc'; // Default to descending
+      }
+      renderWatchlist();
+    }
+
+    // Updates Header Sort Icons visually
+    function updateSortIcons() {
+      const columns = ['rank', 'ticker', 'company', 'price', 'peRatio', 'momentumScore'];
+      columns.forEach(col => {
+        const element = document.getElementById(`sort-icon-${col}`);
+        if (!element) return;
+        
+        if (currentSortColumn === col) {
+          if (currentSortDirection === 'asc') {
+            element.innerHTML = '<i class="fa-solid fa-arrow-up-long text-brand-500 text-xs"></i>';
+          } else {
+            element.innerHTML = '<i class="fa-solid fa-arrow-down-long text-brand-500 text-xs"></i>';
+          }
+        } else {
+          element.innerHTML = '<i class="fa-solid fa-sort text-slate-600 text-[10px]"></i>';
+        }
+      });
+    }
+
+    // Render Watchlist Table
+    function renderWatchlist() {
+      const tbody = document.getElementById("watchlistTableBody");
+      const emptyState = document.getElementById("emptyState");
+      tbody.innerHTML = "";
+
+      // Fetch currently filtered, formatted, and sorted watchlist
+      const filtered = getFilteredWatchlist();
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove("hidden");
+        tbody.classList.add("hidden");
+        updateKPIs();
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      tbody.classList.remove("hidden");
+
+      // Visual sort icon update
+      updateSortIcons();
+
+      filtered.forEach((stock, index) => {
+        const trend = evaluateTrendTemplate(stock);
+        
+        // Custom background colors for score badges
+        let scoreBadgeClass = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+        if (stock.momentumScore >= 50) {
+          scoreBadgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        } else if (stock.momentumScore >= 20) {
+          scoreBadgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+        }
+
+        // Identify standard default ranking position of stock in full sorted list
+        const defaultRank = watchlist.slice().sort((a,b) => b.momentumScore - a.momentumScore).findIndex(s => s.ticker === stock.ticker) + 1;
+
+        // Row Generation matching visual style
+        const tr = document.createElement("tr");
+        tr.className = `hover:bg-slate-800/30 transition-colors border-b border-slate-800/40 relative ${stock.selected ? 'bg-brand-500/5' : ''}`;
+        tr.id = `row-${stock.id}`;
+        tr.innerHTML = `
+          <td class="p-4 text-center">
+            <input type="checkbox" ${stock.selected ? 'checked' : ''} onchange="toggleRowSelect('${stock.id}')" class="rounded border-slate-700 bg-slate-900 text-brand-500 focus:ring-brand-500 focus:ring-offset-slate-900">
+          </td>
+          <td class="p-4 text-center text-xs font-semibold text-slate-400 mono">
+            #${defaultRank}
+          </td>
+          <td class="p-4">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-white tracking-wide uppercase font-mono bg-slate-900/80 px-2 py-1 rounded border border-slate-800 flex items-center gap-1">
+                <span>${stock.ticker}</span>
+              </span>
+              <button onclick="toggleCascade('${stock.id}')" class="text-slate-400 hover:text-white transition-colors p-1" title="View details panel">
+                <i class="fa-solid fa-chevron-down text-[11px] transform transition-transform" id="chevron-${stock.id}"></i>
+              </button>
+            </div>
+          </td>
+          <td class="p-4 hidden md:table-cell">
+            <div class="text-slate-300 font-semibold max-w-[160px] truncate" title="${stock.name}">${stock.name}</div>
+            <div class="text-[11px] text-slate-500">${stock.sector} • ${stock.industry}</div>
+          </td>
+          <td class="p-4">
+            <div class="font-bold text-slate-200 mono">$${stock.price.toFixed(2)}</div>
+            <div class="text-[10px] text-slate-500 flex items-center space-x-1">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>${formatRelativeTime(stock.lastUpdated)}</span>
+            </div>
+          </td>
+          <td class="p-4 hidden sm:table-cell text-slate-300 font-medium mono">
+            ${stock.peRatio !== null ? stock.peRatio.toFixed(1) : '<span class="text-slate-600">N/A</span>'}
+          </td>
+          <td class="p-4 text-center">
+            <span class="inline-flex px-2.5 py-1 text-xs font-extrabold border rounded-lg shadow-sm ${scoreBadgeClass} mono">
+              ${stock.momentumScore > 0 ? '+' : ''}${stock.momentumScore.toFixed(2)}
+            </span>
+          </td>
+          <td class="p-4 text-center">
+            <div class="flex flex-col items-center">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${trend.passedCount === 9 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-855 text-slate-300 border border-slate-700/60'}">
+                <i class="fa-solid ${trend.passedCount === 9 ? 'fa-medal text-amber-400 animate-bounce' : 'fa-circle-check text-slate-400'} mr-1"></i>
+                <span>${trend.passedCount}/9 Rules</span>
+              </span>
+            </div>
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex items-center justify-end space-x-1">
+              <button onclick="triggerIndividualRefresh('${stock.id}')" class="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-brand-500 rounded-lg transition-all border border-slate-800" title="AI Refresh Stock Data">
+                <i class="fa-solid fa-arrows-rotate text-xs"></i>
+              </button>
+              <button onclick="deleteStock('${stock.id}')" class="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-rose-500 rounded-lg transition-all border border-slate-800" title="Remove Symbol">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+
+        // Generate detailed Cascade Row container
+        const cascadeTr = document.createElement("tr");
+        cascadeTr.id = `cascade-${stock.id}`;
+        cascadeTr.className = "hidden bg-slate-900/40 transition-all border-b border-slate-800/40";
+        
+        const pctOffHigh = ((stock.price - stock.high52w) / stock.high52w) * 100;
+        const pctAboveLow = ((stock.price - stock.low52w) / stock.low52w) * 100;
+
+        cascadeTr.innerHTML = `
+          <td colspan="9" class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              
+              <!-- Metrics weights chart representation -->
+              <div class="lg:col-span-4 bg-slate-900 border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center justify-between">
+                    <span>Relative Strength Matrix</span>
+                    <span class="text-brand-500 font-mono text-[10px]">Weight distribution</span>
+                  </h4>
+                  
+                  <div class="space-y-4">
+                    <!-- 3M Change (40%) -->
+                    <div>
+                      <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-400">3 Month (40%)</span>
+                        <span class="mono font-bold ${stock.pctChange3M >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${stock.pctChange3M >= 0 ? '+' : ''}${stock.pctChange3M.toFixed(1)}%</span>
+                      </div>
+                      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
+                        <div class="h-full rounded-full ${stock.pctChange3M >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${Math.min(100, Math.max(0, Math.abs(stock.pctChange3M)))}%"></div>
+                      </div>
+                    </div>
+
+                    <!-- 6M Change (20%) -->
+                    <div>
+                      <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-400">6 Month (20%)</span>
+                        <span class="mono font-bold ${stock.pctChange6M >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${stock.pctChange6M >= 0 ? '+' : ''}${stock.pctChange6M.toFixed(1)}%</span>
+                      </div>
+                      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
+                        <div class="h-full rounded-full ${stock.pctChange6M >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${Math.min(100, Math.max(0, Math.abs(stock.pctChange6M)))}%"></div>
+                      </div>
+                    </div>
+
+                    <!-- 12M Change (20%) -->
+                    <div>
+                      <div class="flex justify-between items-center text-xs font-semibold mb-1">
+                        <span class="text-slate-400">12 Month (20%)</span>
+                        <span class="mono font-bold ${stock.pctChange12M >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${stock.pctChange12M >= 0 ? '+' : ''}${stock.pctChange12M.toFixed(1)}%</span>
+                      </div>
+                      <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
+                        <div class="h-full rounded-full ${stock.pctChange12M >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}" style="width: ${Math.min(100, Math.max(0, Math.abs(stock.pctChange12M)))}%"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-500">
+                  <div class="flex justify-between">
+                    <span>MTS Score:</span>
+                    <span class="text-brand-500 font-extrabold font-mono">${stock.momentumScore.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Minervini Checklist verification block -->
+              <div class="lg:col-span-5 bg-slate-900 border border-slate-800/80 rounded-xl p-5">
+                <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-4 flex items-center justify-between">
+                  <span>Mark Minervini Trend Template Checklist</span>
+                  <span class="text-slate-500 text-[10px] uppercase font-bold">Structural Health</span>
+                </h4>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule1 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> Price &gt; 50 SMA</span>
+                    <span class="mono text-[10px] text-slate-400">$${stock.price.toFixed(1)} &gt; $${stock.ma50.toFixed(1)}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule3 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> Price &gt; 200 SMA</span>
+                    <span class="mono text-[10px] text-slate-400">$${stock.price.toFixed(1)} &gt; $${stock.ma200.toFixed(1)}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule4 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> 50 SMA &gt; 150 SMA</span>
+                    <span class="mono text-[10px] text-slate-400">$${stock.ma50.toFixed(1)} &gt; $${stock.ma150.toFixed(1)}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-855 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule6 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> 150 SMA &gt; 200 SMA</span>
+                    <span class="mono text-[10px] text-slate-400">$${stock.ma150.toFixed(1)} &gt; $${stock.ma200.toFixed(1)}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule7 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> 200 SMA Rising</span>
+                    <span class="mono text-[10px] text-slate-400">${stock.rising200 ? 'Rising' : 'Flat/Down'}</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule8 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> &lt;25% of High</span>
+                    <span class="mono text-[10px] text-slate-400">${Math.abs(pctOffHigh).toFixed(1)}% off</span>
+                  </div>
+
+                  <div class="flex items-center justify-between p-1.5 rounded bg-slate-850 border border-slate-800/40 sm:col-span-2">
+                    <span class="flex items-center"><i class="fa-solid ${trend.results.rule9 ? 'fa-check-circle text-emerald-500' : 'fa-circle-xmark text-rose-500'} mr-2"></i> &gt;30% above 52w Low</span>
+                    <span class="mono text-[10px] text-slate-400">${pctAboveLow.toFixed(1)}% above low</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Screener specific stats (Mkt Cap, Avg Vol, etc.) -->
+              <div class="lg:col-span-3 bg-slate-900 border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between">
+                <div>
+                  <h4 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-4">
+                    <i class="fa-solid fa-list-check mr-1.5"></i> MTS Key Metrics
+                  </h4>
+                  <div class="space-y-2 text-xs text-slate-300 font-medium">
+                    <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                      <span class="text-slate-400">Market Cap</span>
+                      <span class="mono font-bold">$${stock.mktCap}M</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                      <span class="text-slate-400">Avg Vol</span>
+                      <span class="mono font-bold">${stock.avgVolume}K</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                      <span class="text-slate-400">Qtr EPS Growth</span>
+                      <span class="mono font-bold ${stock.qtrlyEps >= 20 ? 'text-emerald-400' : ''}">${stock.qtrlyEps !== null ? stock.qtrlyEps.toFixed(1) + '%' : 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                      <span class="text-slate-400">Qtr Rev Growth</span>
+                      <span class="mono font-bold ${stock.qtrlyRev >= 20 ? 'text-emerald-400' : ''}">${stock.qtrlyRev !== null ? stock.qtrlyRev.toFixed(1) + '%' : 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-800/60 pb-1">
+                      <span class="text-slate-400">ROE %</span>
+                      <span class="mono font-bold ${stock.roe >= 15 ? 'text-emerald-400' : ''}">${stock.roe !== null ? stock.roe.toFixed(1) + '%' : 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between pb-1">
+                      <span class="text-slate-400">Pre-Tax Margin</span>
+                      <span class="mono font-bold ${stock.margin >= 15 ? 'text-emerald-400' : ''}">${stock.margin !== null ? stock.margin.toFixed(1) + '%' : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </td>
+        `;
+        tbody.appendChild(cascadeTr);
+      });
+
+      updateKPIs();
+    }
+
+    // Toggle Cascade accordion expansion
+    function toggleCascade(stockId) {
+      const pane = document.getElementById(`cascade-${stockId}`);
+      const chevron = document.getElementById(`chevron-${stockId}`);
+      
+      if (pane.classList.contains("hidden")) {
+        pane.classList.remove("hidden");
+        pane.classList.add("expanded-active");
+        chevron.style.transform = "rotate(180deg)";
+      } else {
+        pane.classList.add("hidden");
+        pane.classList.remove("expanded-active");
+        chevron.style.transform = "rotate(0deg)";
+      }
+    }
+
+    // Return currently filtered & sorted stock list
+    function getFilteredWatchlist() {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const sector = document.getElementById("sectorFilter").value;
+      const trendOption = document.getElementById("trendFilter").value;
+
+      let result = [...watchlist];
+
+      // 1. Search filter
+      if (search) {
+        result = result.filter(s => s.ticker.toLowerCase().includes(search) || s.name.toLowerCase().includes(search));
+      }
+
+      // 2. Sector filter
+      if (sector !== "ALL") {
+        result = result.filter(s => s.sector === sector);
+      }
+
+      // 3. Trend Template pass filter
+      if (trendOption !== "ALL") {
+        result = result.filter(s => {
+          const evalRes = evaluateTrendTemplate(s);
+          return trendOption === "PASS" ? evalRes.fullPass : !evalRes.fullPass;
+        });
+      }
+
+      // 4. Multi-Column Sorting Engine
+      result.sort((a, b) => {
+        let valA, valB;
+        
+        switch (currentSortColumn) {
+          case 'rank':
+            valA = a.momentumScore;
+            valB = b.momentumScore;
+            return currentSortDirection === 'asc' ? valA - valB : valB - valA;
+            
+          case 'ticker':
+            valA = a.ticker;
+            valB = b.ticker;
+            return currentSortDirection === 'asc' 
+              ? valA.localeCompare(valB) 
+              : valB.localeCompare(valA);
+              
+          case 'company':
+            valA = a.name;
+            valB = b.name;
+            return currentSortDirection === 'asc' 
+              ? valA.localeCompare(valB) 
+              : valB.localeCompare(valA);
+              
+          case 'price':
+            valA = a.price;
+            valB = b.price;
+            return currentSortDirection === 'asc' ? valA - valB : valB - valA;
+            
+          case 'peRatio':
+            valA = a.peRatio;
+            valB = b.peRatio;
+            
+            if (valA === null && valB === null) return 0;
+            if (valA === null) return 1;
+            if (valB === null) return -1;
+            
+            return currentSortDirection === 'asc' ? valA - valB : valB - valA;
+            
+          case 'momentumScore':
+          default:
+            valA = a.momentumScore;
+            valB = b.momentumScore;
+            return currentSortDirection === 'asc' ? valA - valB : valB - valA;
+        }
+      });
+
+      return result;
+    }
+
+    // Filter Trigger Handler
+    function applyFilters() {
+      renderWatchlist();
+    }
+
+    // Populate sector select box options based on available data
+    function populateFilters() {
+      const sectorSelect = document.getElementById("sectorFilter");
+      const currentVal = sectorSelect.value;
+      
+      sectorSelect.innerHTML = '<option value="ALL">All Sectors</option>';
+      
+      const sectors = [...new Set(watchlist.map(s => s.sector))].sort();
+      sectors.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s;
+        opt.textContent = s;
+        sectorSelect.appendChild(opt);
+      });
+
+      if (sectors.includes(currentVal)) {
+        sectorSelect.value = currentVal;
+      }
+    }
+
+    // Interactive KPIs updates
+    function updateKPIs() {
+      document.getElementById("kpi-total").textContent = watchlist.length;
+
+      const leaders = watchlist.filter(s => s.momentumScore >= 50).length;
+      document.getElementById("kpi-leaders").textContent = leaders;
+
+      const passersCount = watchlist.filter(s => evaluateTrendTemplate(s).fullPass).length;
+      const passPct = watchlist.length > 0 ? Math.round((passersCount / watchlist.length) * 100) : 0;
+      document.getElementById("kpi-trend").textContent = `${passPct}%`;
+
+      // Determine Top Sector
+      if (watchlist.length > 0) {
+        const counts = {};
+        watchlist.forEach(s => { counts[s.sector] = (counts[s.sector] || 0) + 1; });
+        const topSec = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+        document.getElementById("kpi-sector").textContent = topSec;
+      } else {
+        document.getElementById("kpi-sector").textContent = "N/A";
+      }
+
+      // Toggle bulk delete button state
+      const selectedCount = watchlist.filter(s => s.selected).length;
+      const delBtn = document.getElementById("deleteSelectedBtn");
+      const selectAll = document.getElementById("selectAllCheckbox");
+
+      if (selectedCount > 0) {
+        delBtn.disabled = false;
+        delBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        delBtn.classList.add("hover:bg-rose-500/20");
+      } else {
+        delBtn.disabled = true;
+        delBtn.classList.add("opacity-50", "cursor-not-allowed");
+        delBtn.classList.remove("hover:bg-rose-500/20");
+      }
+
+      if (watchlist.length > 0 && selectedCount === watchlist.length) {
+        selectAll.checked = true;
+      } else {
+        selectAll.checked = false;
+      }
+    }
+
+    // Add manual stock ticker
+    function handleAddStock() {
+      const input = document.getElementById("addTickerInput");
+      const sym = input.value.toUpperCase().trim();
+      
+      if (!sym) {
+        showToast("Please enter a valid ticker symbol", "error");
+        return;
+      }
+
+      // Check duplicates
+      if (watchlist.some(s => s.ticker === sym)) {
+        showToast(`Stock ${sym} is already on the watchlist`, "warning");
+        return;
+      }
+
+      // Create & add
+      const stock = createStockObject(sym);
+      watchlist.unshift(stock);
+      saveWatchlistToStorage();
+      renderWatchlist();
+      populateFilters();
+      
+      input.value = "";
+      showToast(`Added ${sym} to Watchlist! Perform a search to update live data.`, "success");
+    }
+
+    // Single ticker delete handler
+    function deleteStock(stockId) {
+      watchlist = watchlist.filter(s => s.id !== stockId);
+      saveWatchlistToStorage();
+      renderWatchlist();
+      populateFilters();
+      showToast("Symbol removed from workspace", "info");
+    }
+
+    // Select toggling mechanics
+    function toggleRowSelect(stockId) {
+      const idx = watchlist.findIndex(s => s.id === stockId);
+      if (idx !== -1) {
+        watchlist[idx].selected = !watchlist[idx].selected;
+        saveWatchlistToStorage();
+        updateKPIs();
+        
+        // Toggle row highlight manually for performance
+        const row = document.getElementById(`row-${stockId}`);
+        if (watchlist[idx].selected) {
+          row.classList.add("bg-brand-500/5");
+        } else {
+          row.classList.remove("bg-brand-500/5");
+        }
+      }
+    }
+
+    // Checkbox toggle all
+    function toggleSelectAll() {
+      const val = document.getElementById("selectAllCheckbox").checked;
+      watchlist.forEach(s => s.selected = val);
+      saveWatchlistToStorage();
+      renderWatchlist();
+    }
+
+    // Delete selected stocks
+    function deleteSelected() {
+      const count = watchlist.filter(s => s.selected).length;
+      if (count === 0) return;
+
+      watchlist = watchlist.filter(s => !s.selected);
+      saveWatchlistToStorage();
+      renderWatchlist();
+      populateFilters();
+      showToast(`Deleted ${count} selected stock(s)`, "info");
+    }
+
+    // Master Reset / Clear list
+    function openClearAllModal() {
+      document.getElementById("clearAllModal").classList.remove("hidden");
+    }
+
+    function closeClearAllModal() {
+      document.getElementById("clearAllModal").classList.add("hidden");
+    }
+
+    function clearAllWatchlist() {
+      watchlist = [];
+      saveWatchlistToStorage();
+      renderWatchlist();
+      populateFilters();
+      closeClearAllModal();
+      showToast("All stock entries purged successfully.", "success");
+    }
+
+    // Safe line splitter respecting double quotes for CSV values
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    // CSV uploaded parsing handler
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/);
+        
+        if (lines.length === 0) {
+          showToast("Selected file is empty.", "error");
+          return;
+        }
+
+        // Detect if this is an MTS Screener Format file
+        const headerParts = parseCSVLine(lines[0]);
+        const isMTSScreener = headerParts.includes("Stock Name") && headerParts.includes("Match %");
+
+        let count = 0;
+
+        if (isMTSScreener) {
+          const idxTicker = headerParts.indexOf("Stock Name");
+          const idxCompany = headerParts.indexOf("Company Name");
+          const idxPrice = headerParts.indexOf("Price");
+          const idxPE = headerParts.indexOf("P/E Ratio");
+          const idxEPS = headerParts.indexOf("Qtrly EPS > 20%");
+          const idxRev = headerParts.indexOf("Qtrly Revenue > 20%");
+          const idxROE = headerParts.indexOf("ROE > 15%");
+          const idxMargin = headerParts.indexOf("Pre-Tax Margin > 15%");
+          const idxRS = headerParts.indexOf("RS Rating >= 80");
+
+          for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line.trim()) continue;
+            
+            const cols = parseCSVLine(line);
+            if (cols.length < 3) continue;
+
+            const ticker = cols[idxTicker];
+            if (!ticker || watchlist.some(s => s.ticker === ticker.toUpperCase())) continue;
+
+            const price = parseFloat(cols[idxPrice]) || 0;
+            const pe = cols[idxPE] ? parseFloat(cols[idxPE]) : null;
+            
+            const extractPctValue = (str) => {
+              if (!str || str === "N/A" || str.toLowerCase() === "null") return null;
+              const matches = str.match(/[-+]?[0-9]*[.,]?[0-9]+/);
+              if (matches) {
+                return parseFloat(matches[0].replace(',', '.'));
+              }
+              return null;
+            };
+
+            const qtrlyEps = idxEPS !== -1 ? extractPctValue(cols[idxEPS]) : null;
+            const qtrlyRev = idxRev !== -1 ? extractPctValue(cols[idxRev]) : null;
+            const roe = idxROE !== -1 ? extractPctValue(cols[idxROE]) : null;
+            const margin = idxMargin !== -1 ? extractPctValue(cols[idxMargin]) : null;
+            const rsRating = idxRS !== -1 ? extractPctValue(cols[idxRS]) : 50;
+
+            const newStock = createStockObject(ticker, {
+              name: cols[idxCompany] || undefined,
+              price: price,
+              peRatio: pe,
+              qtrlyEps: qtrlyEps,
+              qtrlyRev: qtrlyRev,
+              roe: roe,
+              margin: margin,
+              rsRating: rsRating
+            });
+
+            watchlist.push(newStock);
+            count++;
+          }
+        } else {
+          lines.forEach(line => {
+            if (!line.trim()) return;
+            const parts = line.split(',');
+            const sym = parts[0].replace(/["']/g, "").trim().toUpperCase();
+            if (sym && sym.length >= 1 && sym.length <= 6 && !sym.includes(" ") && !watchlist.some(s => s.ticker === sym)) {
+              watchlist.push(createStockObject(sym));
+              count++;
+            }
+          });
+        }
+
+        if (count > 0) {
+          saveWatchlistToStorage();
+          renderWatchlist();
+          populateFilters();
+          showToast(`Successfully imported ${count} stock(s) from report!`, "success");
+        } else {
+          showToast("No new unique stock symbols were loaded", "warning");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    // Relative timestamp formatter helper
+    function formatRelativeTime(isoString) {
+      try {
+        const past = new Date(isoString);
+        const diffMs = new Date() - past;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        if (diffMins < 1) return "just now";
+        if (diffMins < 60) return `${diffMins}m ago`;
+        
+        const diffHrs = Math.floor(diffMins / 60);
+        if (diffHrs < 24) return `${diffHrs}h ago`;
+        
+        return past.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      } catch (e) {
+        return "N/A";
+      }
+    }
+
+    // UI Toast messaging wrapper
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      
+      let colorClass = "bg-brand-500/10 border-brand-500 text-brand-400";
+      let icon = "fa-circle-check";
+      
+      if (type === "error") {
+        colorClass = "bg-rose-500/10 border-rose-500 text-rose-400";
+        icon = "fa-circle-exclamation";
+      } else if (type === "warning") {
+        colorClass = "bg-amber-500/10 border-amber-500 text-amber-400";
+        icon = "fa-triangle-exclamation";
+      } else if (type === "info") {
+        colorClass = "bg-sky-500/10 border-sky-500 text-sky-400";
+        icon = "fa-circle-info";
+      }
+
+      toast.className = `p-4 border rounded-xl flex items-start space-x-3 shadow-lg backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 ${colorClass}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} mt-0.5 text-base"></i>
+        <div class="flex-1 text-xs font-semibold leading-relaxed">${message}</div>
+      `;
+
+      container.appendChild(toast);
+      
+      // Animate entry
+      setTimeout(() => {
+        toast.classList.remove("translate-y-2", "opacity-0");
+      }, 10);
+
+      // Dismiss timer
+      setTimeout(() => {
+        toast.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // ==========================================
+    // EXPORT TO MTS SCREENER FORMAT CSV/XLSX
+    // ==========================================
+    function exportToMTSCSV() {
+      if (watchlist.length === 0) {
+        showToast("No stock data available to export.", "warning");
+        return;
+      }
+
+      const headers = [
+        "Stock Name",
+        "Company Name",
+        "Price",
+        "P/E Ratio",
+        "Match %",
+        "Price > $10",
+        "Mkt Cap > $100M",
+        "Avg Vol > $100K",
+        "Qtrly EPS > 20%",
+        "Qtrly Revenue > 20%",
+        "ROE > 15%",
+        "Pre-Tax Margin > 15%",
+        "RS Rating >= 80",
+        "Within 15% of 52W High",
+        "Price > 50-Day MA",
+        "Price > 200-Day MA",
+        "50MA > 200MA",
+        "Pass/Fail"
+      ];
+
+      const csvRows = [headers.join(",")];
+
+      watchlist.forEach(stock => {
+        const trend = evaluateTrendTemplate(stock);
+        const pctOffHigh = ((stock.price - stock.high52w) / stock.high52w) * 100;
+
+        const cellPriceMoreThan10 = stock.price > 10 
+          ? `"PASS ($${stock.price.toFixed(2).replace('.', ',')})"` 
+          : `"FAIL ($${stock.price.toFixed(2).replace('.', ',')})"`;
+        
+        const cellMktCap = stock.mktCap >= 100 
+          ? `"PASS ($${stock.mktCap}M)"` 
+          : `"FAIL ($${stock.mktCap}M)"`;
+
+        const cellAvgVol = stock.avgVolume >= 100 
+          ? `"PASS (${stock.avgVolume}K)"` 
+          : `"FAIL (${stock.avgVolume}K)"`;
+
+        const cellEps = stock.qtrlyEps === null 
+          ? "N/A" 
+          : (stock.qtrlyEps >= 20 
+              ? `"PASS (${stock.qtrlyEps.toFixed(1).replace('.', ',')}%)"` 
+              : `"FAIL (${stock.qtrlyEps.toFixed(1).replace('.', ',')}%)"`);
+
+        const cellRev = stock.qtrlyRev === null 
+          ? "N/A" 
+          : (stock.qtrlyRev >= 20 
+              ? `"PASS (${stock.qtrlyRev.toFixed(1).replace('.', ',')}%)"` 
+              : `"FAIL (${stock.qtrlyRev.toFixed(1).replace('.', ',')}%)"`);
+
+        const cellRoe = stock.roe === null 
+          ? "N/A" 
+          : (stock.roe >= 15 
+              ? `"PASS (${stock.roe.toFixed(1).replace('.', ',')}%)"` 
+              : `"FAIL (${stock.roe.toFixed(1).replace('.', ',')}%)"`);
+
+        const cellMargin = stock.margin === null 
+          ? "N/A" 
+          : (stock.margin >= 15 
+              ? `"PASS (${stock.margin.toFixed(1).replace('.', ',')}%)"` 
+              : `"FAIL (${stock.margin.toFixed(1).replace('.', ',')}%)"`);
+
+        const cellRs = stock.rsRating === null 
+          ? "N/A" 
+          : (stock.rsRating >= 80 
+              ? `"PASS (${stock.rsRating})"` 
+              : `"FAIL (${stock.rsRating})"`);
+
+        const cellWithinHigh = pctOffHigh >= -15 
+          ? `"PASS (${pctOffHigh.toFixed(1).replace('.', ',')}%)"` 
+          : `"FAIL (${pctOffHigh.toFixed(1).replace('.', ',')}%)"`;
+
+        const cellPriceAbove50 = trend.results.rule1 ? "PASS (Yes)" : "FAIL (No)";
+        const cellPriceAbove200 = trend.results.rule3 ? "PASS (Yes)" : "FAIL (No)";
+        const cell50Above200 = trend.results.rule5 ? "PASS (Yes)" : "FAIL (No)";
+
+        const totalCriteria = 12;
+        let passCount = 0;
+        if (stock.price > 10) passCount++;
+        if (stock.mktCap >= 100) passCount++;
+        if (stock.avgVolume >= 100) passCount++;
+        if (stock.qtrlyEps === null || stock.qtrlyEps >= 20) passCount++;
+        if (stock.qtrlyRev === null || stock.qtrlyRev >= 20) passCount++;
+        if (stock.roe === null || stock.roe >= 15) passCount++;
+        if (stock.margin === null || stock.margin >= 15) passCount++;
+        if (stock.rsRating === null || stock.rsRating >= 80) passCount++;
+        if (pctOffHigh >= -15) passCount++;
+        if (trend.results.rule1) passCount++;
+        if (trend.results.rule3) passCount++;
+        if (trend.results.rule5) passCount++;
+
+        const matchPct = Math.round((passCount / totalCriteria) * 100);
+        const passFailLabel = matchPct === 100 ? "PASS" : "FAIL";
+
+        const row = [
+          stock.ticker,
+          `"${stock.name.replace(/"/g, '""')}"`,
+          stock.price,
+          stock.peRatio !== null ? stock.peRatio : "",
+          matchPct,
+          cellPriceMoreThan10,
+          cellMktCap,
+          cellAvgVol,
+          cellEps,
+          cellRev,
+          cellRoe,
+          cellMargin,
+          cellRs,
+          cellWithinHigh,
+          cellPriceAbove50,
+          cellPriceAbove200,
+          cell50Above200,
+          passFailLabel
+        ];
+
+        csvRows.push(row.join(","));
+      });
+
+      const csvString = csvRows.join("\n");
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `mts-screener-results_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast("Watchlist exported in full MTS Screener format", "success");
+    }
+
+    // ==========================================
+    // GEMINI AI INTEGRATION WITH STOP CONTROLS
+    // ==========================================
+
+    // Terminate any active running batch refresh immediately
+    function abortActiveRefresh() {
+      if (isRefreshingActive) {
+        cancelRefreshRequested = true;
+        showToast("Stopping background update processes... Please wait.", "warning");
+      }
+    }
+
+    // Toggle button UI depending on active state
+    function toggleRefreshStateUI(isActive) {
+      isRefreshingActive = isActive;
+      const btnRefreshAll = document.getElementById("btnRefreshAll");
+      const btnStopRefresh = document.getElementById("btnStopRefresh");
+
+      if (isActive) {
+        btnRefreshAll.classList.add("hidden");
+        btnStopRefresh.classList.remove("hidden");
+      } else {
+        btnRefreshAll.classList.remove("hidden");
+        btnStopRefresh.classList.add("hidden");
+      }
+    }
+
+    // Perform individual search query
+    async function triggerIndividualRefresh(stockId) {
+      const idx = watchlist.findIndex(s => s.id === stockId);
+      if (idx === -1) return;
+
+      const stock = watchlist[idx];
+      showToast(`AI Stock Researcher: Querying real data for ${stock.ticker}...`, "info");
+      
+      showGlobalLoader(10);
+
+      try {
+        const isDemo = document.getElementById("mockModeCheckbox").checked;
+        let freshData;
+
+        if (isDemo) {
+          await delay(1200);
+          freshData = generateMockUpdate(stock.ticker);
+        } else {
+          freshData = await fetchLiveStockDataFromGemini(stock.ticker);
+        }
+
+        // Apply new metrics
+        Object.assign(watchlist[idx], freshData);
+        watchlist[idx].momentumScore = calculateMomentumScore(
+          watchlist[idx].pctChange3M,
+          watchlist[idx].pctChange6M,
+          watchlist[idx].pctChange9M,
+          watchlist[idx].pctChange12M
+        );
+        watchlist[idx].lastUpdated = new Date().toISOString();
+
+        saveWatchlistToStorage();
+        renderWatchlist();
+        showToast(`Refreshed ${stock.ticker} successfully!`, "success");
+      } catch (err) {
+        console.error(err);
+        showToast(`AI engine query for ${stock.ticker} failed. Falling back to simulated data.`, "warning");
+        
+        const fallback = generateMockUpdate(stock.ticker);
+        Object.assign(watchlist[idx], fallback);
+        watchlist[idx].momentumScore = calculateMomentumScore(
+          watchlist[idx].pctChange3M,
+          watchlist[idx].pctChange6M,
+          watchlist[idx].pctChange9M,
+          watchlist[idx].pctChange12M
+        );
+        watchlist[idx].lastUpdated = new Date().toISOString();
+        saveWatchlistToStorage();
+        renderWatchlist();
+      } finally {
+        hideGlobalLoader();
+      }
+    }
+
+    // Refresh entire watchlist sequentially or concurrently using a batch worker with Stop mechanics
+    async function triggerRefreshAll() {
+      if (watchlist.length === 0) {
+        showToast("No tickers to refresh", "warning");
+        return;
+      }
+
+      // Reset state
+      cancelRefreshRequested = false;
+      toggleRefreshStateUI(true);
+      showToast(`Starting full Watchlist update. Use the STOP button to cancel.`, "info");
+      showGlobalLoader(5);
+
+      const isDemo = document.getElementById("mockModeCheckbox").checked;
+      const total = watchlist.length;
+
+      for (let i = 0; i < total; i++) {
+        // Exit condition checking
+        if (cancelRefreshRequested) {
+          showToast("Batch refresh aborted by user. Saving completed items.", "error");
+          break;
+        }
+
+        const pct = Math.round(((i + 1) / total) * 100);
+        updateProgress(pct);
+
+        const stock = watchlist[i];
+        try {
+          let freshData;
+          if (isDemo) {
+            await delay(350); // Fluid animation response
+            freshData = generateMockUpdate(stock.ticker);
+          } else {
+            freshData = await fetchLiveStockDataFromGemini(stock.ticker);
+          }
+
+          Object.assign(watchlist[i], freshData);
+          watchlist[i].momentumScore = calculateMomentumScore(
+            watchlist[i].pctChange3M,
+            watchlist[i].pctChange6M,
+            watchlist[i].pctChange9M,
+            watchlist[i].pctChange12M
+          );
+          watchlist[i].lastUpdated = new Date().toISOString();
+
+        } catch (err) {
+          console.error(`Failed refreshing ${stock.ticker}:`, err);
+          const fallback = generateMockUpdate(stock.ticker);
+          Object.assign(watchlist[i], fallback);
+          watchlist[i].momentumScore = calculateMomentumScore(
+            watchlist[i].pctChange3M,
+            watchlist[i].pctChange6M,
+            watchlist[i].pctChange9M,
+            watchlist[i].pctChange12M
+          );
+          watchlist[i].lastUpdated = new Date().toISOString();
+        }
+
+        // Render batches
+        if ((i + 1) % 2 === 0 || i === total - 1) {
+          saveWatchlistToStorage();
+          renderWatchlist();
+        }
+      }
+
+      // Cleanup
+      hideGlobalLoader();
+      toggleRefreshStateUI(false);
+      
+      if (!cancelRefreshRequested) {
+        showToast("Completed full watchlist refresh cycle!", "success");
+      }
+      cancelRefreshRequested = false;
+    }
+
+    // Global Loader helpers
+    function showGlobalLoader(initialPct) {
+      const bar = document.getElementById("apiLoaderBar");
+      const indicator = document.getElementById("apiProgressIndicator");
+      const pctText = document.getElementById("apiProgressPercent");
+      if (bar) bar.classList.remove("hidden");
+      if (indicator) indicator.style.width = `${initialPct}%`;
+      if (pctText) pctText.textContent = `${initialPct}%`;
+    }
+
+    // progress indicator increment helper
+    function updateProgress(pct) {
+      const indicator = document.getElementById("apiProgressIndicator");
+      const pctText = document.getElementById("apiProgressPercent");
+      if (indicator) {
+        indicator.style.width = `${pct}%`;
+      }
+      if (pctText) {
+        pctText.textContent = `${pct}%`;
+      }
+    }
+
+    function hideGlobalLoader() {
+      const bar = document.getElementById("apiLoaderBar");
+      if (bar) {
+        bar.classList.add("hidden");
+      }
+    }
+
+    // Custom helper wait timer
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Synthesize unique mock update with slight randomized variation
+    function generateMockUpdate(symbol) {
+      const demo = DEMO_METRICS[symbol];
+      const variance = (Math.random() - 0.5) * 0.1; 
+      
+      const seed = Math.random();
+      const price = demo ? demo.price * (1 + variance) : +(100 + seed * 200).toFixed(2);
+      const ch3 = demo ? demo.ch3 + variance * 50 : +(10 + seed * 30).toFixed(1);
+      const ch6 = demo ? demo.ch6 + variance * 60 : +(ch3 * 1.5 + seed * 10).toFixed(1);
+      const ch9 = demo ? demo.ch9 + variance * 70 : +(ch6 * 1.3 + seed * 15).toFixed(1);
+      const ch12 = demo ? demo.ch12 + variance * 80 : +(ch9 * 1.2 + seed * 20).toFixed(1);
+
+      return {
+        price: +price.toFixed(2),
+        peRatio: demo ? (demo.peRatio ? +(demo.peRatio * (1 + variance * 0.5)).toFixed(1) : null) : +(20 + seed * 40).toFixed(1),
+        sector: demo ? demo.sector : "Technology",
+        industry: demo ? demo.industry : "Software Services",
+        pctChange3M: +ch3.toFixed(1),
+        pctChange6M: +ch6.toFixed(1),
+        pctChange9M: +ch9.toFixed(1),
+        pctChange12M: +ch12.toFixed(1),
+        ma50: +(price * (0.95 + variance * 0.2)).toFixed(2),
+        ma150: +(price * (0.9 + variance * 0.2)).toFixed(2),
+        ma200: +(price * (0.85 + variance * 0.2)).toFixed(2),
+        high52w: +(price * (1.1 + seed * 0.1)).toFixed(2),
+        low52w: +(price * (0.7 + seed * 0.1)).toFixed(2),
+        rising200: demo ? demo.rising200 : seed > 0.4,
+        mktCap: demo ? demo.mktCap : Math.round(500 + seed * 300000),
+        avgVolume: demo ? demo.avgVolume : Math.round(200 + seed * 25000),
+        qtrlyEps: demo ? demo.qtrlyEps : +(5 + seed * 50).toFixed(1),
+        qtrlyRev: demo ? demo.qtrlyRev : +(10 + seed * 40).toFixed(1),
+        roe: demo ? demo.roe : +(12 + seed * 28).toFixed(1),
+        margin: demo ? demo.margin : +(8 + seed * 20).toFixed(1),
+        rsRating: demo ? demo.rsRating : Math.round(45 + seed * 53)
+      };
+    }
+
+    // Make API Call directly to Gemini 2.5 preview environment with exponential backoff retries
+    async function fetchLiveStockDataFromGemini(tickerSymbol) {
+      const query = `
+        Search Google for current stock market information of ticker "${tickerSymbol}".
+        Provide accurate metrics as of the latest possible dates.
+        Fill this EXACT JSON object. Do not explain, return ONLY the raw JSON format specified:
+        {
+          "price": (current close price as a float number),
+          "peRatio": (current P/E ratio, null if not available or negative),
+          "sector": "sector string, e.g. Technology",
+          "industry": "industry name string, e.g. Semiconductors",
+          "pctChange3M": (approximate percentage price performance over the past 3 months),
+          "pctChange6M": (approximate percentage price performance over the past 6 months),
+          "pctChange9M": (approximate percentage price performance over the past 9 months),
+          "pctChange12M": (approximate percentage price performance over the past 12 months),
+          "ma50": (current 50-day Simple Moving Average price value),
+          "ma150": (current 150-day Simple Moving Average price value),
+          "ma200": (current 200-day Simple Moving Average price value),
+          "high52w": (52-week high price value),
+          "low52w": (52-week low price value),
+          "rising200": (boolean true if the 200-day SMA is actively in an upward slope/trending up),
+          "mktCap": (Market Cap in Millions of dollars, e.g. 52000),
+          "avgVolume": (Average daily volume in thousands, e.g. 1500),
+          "qtrlyEps": (Quarterly EPS growth %, e.g. 45.0),
+          "qtrlyRev": (Quarterly Revenue growth %, e.g. 21.0),
+          "roe": (Return on Equity %, e.g. 25.4),
+          "margin": (Pre-tax profit margin %, e.g. 18.2),
+          "rsRating": (Estimated Relative Strength Rating from 1 to 99, e.g. 88)
+        }
+      `;
+
+      const requestPayload = {
+        contents: [{ parts: [{ text: query }] }],
+        tools: [{ "google_search": {} }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              price: { type: "NUMBER" },
+              peRatio: { type: "NUMBER", nullable: true },
+              sector: { type: "STRING" },
+              industry: { type: "STRING" },
+              pctChange3M: { type: "NUMBER" },
+              pctChange6M: { type: "NUMBER" },
+              pctChange9M: { type: "NUMBER" },
+              pctChange12M: { type: "NUMBER" },
+              ma50: { type: "NUMBER" },
+              ma150: { type: "NUMBER" },
+              ma200: { type: "NUMBER" },
+              high52w: { type: "NUMBER" },
+              low52w: { type: "NUMBER" },
+              rising200: { type: "BOOLEAN" },
+              mktCap: { type: "NUMBER" },
+              avgVolume: { type: "NUMBER" },
+              qtrlyEps: { type: "NUMBER", nullable: true },
+              qtrlyRev: { type: "NUMBER", nullable: true },
+              roe: { type: "NUMBER", nullable: true },
+              margin: { type: "NUMBER", nullable: true },
+              rsRating: { type: "NUMBER" }
+            },
+            required: [
+              "price", "sector", "industry", "pctChange3M", "pctChange6M", 
+              "pctChange9M", "pctChange12M", "ma50", "ma150", "ma200", 
+              "high52w", "low52w", "rising200", "mktCap", "avgVolume", "rsRating"
+            ]
+          }
+        }
+      };
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+      let attempts = 5;
+      let delayMs = 1000;
+
+      while (attempts > 0) {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestPayload)
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error Status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (!jsonText) {
+            throw new Error("No payload text returned from Gemini API");
+          }
+
+          const data = JSON.parse(jsonText);
+          return data;
+
+        } catch (err) {
+          attempts--;
+          if (attempts === 0) {
+            throw err;
+          }
+          await delay(delayMs);
+          delayMs *= 2; 
+        }
+      }
+    }
+  </script>
+</body>
+</html>
